@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DMS Instance Monitor — sportdata.org</title>
+  <meta name="description" content="Track and manage DMS instance availability across all sportdata.org servers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+
+  <!-- ═══ HEADER ═══════════════════════════════════════════════════════ -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5" />
+          <path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          <circle cx="7" cy="8" r="1.5" fill="currentColor" />
+          <circle cx="12" cy="8" r="1.5" fill="currentColor" />
+          <circle cx="17" cy="8" r="1.5" fill="currentColor" />
+          <path d="M7 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+      </div>
+      <div class="header-titles">
+        <h1>DMS Instance Monitor</h1>
+        <span class="header-subtitle">sportdata.org · 29 instances tracked</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="stats-bar" id="statsBar">
+        <div class="stat-chip available">
+          <span class="dot"></span>
+          <span id="countAvailable">—</span> Available
+        </div>
+        <div class="stat-chip in-use">
+          <span class="dot"></span>
+          <span id="countInUse">—</span> In Use
+        </div>
+        <div class="stat-chip maintenance">
+          <span class="dot"></span>
+          <span id="countUnknown">—</span> In Maintenance
+        </div>
+      </div>
+      <div class="refresh-info">
+        <span id="lastUpdated">Updating…</span>
+        <button class="btn-refresh" id="btnRefresh" title="Refresh now">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 4v5h5M20 20v-5h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M4 9A9 9 0 0 1 19.39 7M20 15a9 9 0 0 1-15.39 2" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN GRID ═════════════════════════════════════════════════════ -->
+  <main class="app-main">
+    <div class="instances-grid" id="instancesGrid">
+      <!-- Buttons injected by JS -->
+    </div>
+  </main>
+
+  <!-- ═══ LEGEND ════════════════════════════════════════════════════════ -->
+  <footer class="app-footer">
+    <div class="legend">
+      <span class="legend-item">
+        <span class="legend-dot available"></span> Available
+      </span>
+      <span class="legend-item">
+        <span class="legend-dot in-use"></span> In Use
+      </span>
+      <span class="legend-item">
+        <span class="legend-dot maintenance"></span> In Maintenance
+      </span>
+    </div>
+    <span class="footer-copy">Auto-refresh every 30s · DMS Instance Monitor v1.0</span>
+  </footer>
+
+  <!-- ═══ DETAIL PANEL (SLIDE-IN) ═══════════════════════════════════════ -->
+  <div class="panel-overlay" id="panelOverlay"></div>
+  <aside class="detail-panel" id="detailPanel" role="dialog" aria-modal="true" aria-label="Instance Details">
+    <button class="panel-close" id="panelClose" title="Close">✕</button>
+
+    <div class="panel-header">
+      <div class="panel-instance-badge" id="panelBadge">9091</div>
+      <div class="panel-title-block">
+        <h2 id="panelTitle">Instance 9091</h2>
+        <a id="panelUrl" href="#" target="_blank" rel="noopener noreferrer">—</a>
+      </div>
+      <div class="panel-status-badge" id="panelStatusBadge">—</div>
+    </div>
+
+    <!-- READ VIEW -->
+    <div class="panel-body" id="panelBody">
+      <div class="info-row">
+        <span class="info-label">Used By</span>
+        <span class="info-value" id="infoUsedBy">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">From</span>
+        <span class="info-value" id="infoFrom">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">To</span>
+        <span class="info-value" id="infoTo">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Notes</span>
+        <span class="info-value" id="infoNotes">—</span>
+      </div>
+    </div>
+
+    <!-- ERROR/SUCCESS FEEDBACK -->
+    <div class="panel-feedback" id="panelFeedback"></div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="panel-actions" id="panelActions">
+      <button class="btn btn-primary" id="btnAssign">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" />
+          <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" />
+        </svg>
+        Assign Instance
+      </button>
+      <button class="btn btn-maintenance" id="btnMaintenance">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" />
+          <circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+        In Maintenance
+      </button>
+      <button class="btn btn-danger" id="btnFree" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+          <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        Mark as Available
+      </button>
+    </div>
+
+    <!-- EDIT FORM -->
+    <form class="edit-form" id="editForm" style="display:none;">
+      <div class="form-group">
+        <label for="fieldUsedBy">Used By <span class="required">*</span></label>
+        <input type="text" id="fieldUsedBy" placeholder="e.g. John Smith (Club XYZ)" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fieldFrom">From <span class="required">*</span></label>
+          <input type="date" id="fieldFrom" required />
+        </div>
+        <div class="form-group">
+          <label for="fieldTo">To <span class="required">*</span></label>
+          <input type="date" id="fieldTo" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="fieldNotes">Notes <span class="optional">(optional)</span></label>
+        <textarea id="fieldNotes" rows="2" placeholder="Competition name, event, etc."></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" id="btnCancelEdit">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btnSave">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke="currentColor"
+              stroke-width="2" />
+            <polyline points="17 21 17 13 7 13 7 21" stroke="currentColor" stroke-width="2" />
+            <polyline points="7 3 7 8 15 8" stroke="currentColor" stroke-width="2" />
+          </svg>
+          Save
+        </button>
+      </div>
+    </form>
+  </aside>
+
+  <script src="/static/app.js"></script>
+</body>
+
+</html>
