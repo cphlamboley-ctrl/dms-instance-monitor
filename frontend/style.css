@@ -99,21 +99,18 @@ body::before {
 }
 
 .logo-icon {
-  width: 48px;
   height: 48px;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  flex-shrink: 0;
+  width: auto;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .logo-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
+  height: 48px;
+  width: auto;
+  object-fit: contain;
 }
 
 .header-titles h1 {
@@ -247,6 +244,32 @@ body::before {
   gap: 16px;
   max-width: 1400px;
   margin: 0 auto;
+}
+
+/* ─── LOGO CARD (first grid cell) ───────────────────────────── */
+.instance-logo-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(79, 142, 247, 0.2);
+  background: #000;
+  overflow: hidden;
+  min-height: 110px;
+  transition: var(--transition);
+}
+
+.instance-logo-card:hover {
+  border-color: rgba(79, 142, 247, 0.45);
+  box-shadow: 0 0 20px rgba(79, 142, 247, 0.2);
+}
+
+.instance-logo-card img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(79, 142, 247, 0.3));
 }
 
 /* ─── INSTANCE BUTTON ────────────────────────────────────────── */

@@ -80,6 +80,12 @@ function statusLabel(status) {
 function renderGrid(data) {
   grid.innerHTML = '';
 
+  // ── Logo card — first cell of the grid ────────────────────────
+  const logoCard = document.createElement('div');
+  logoCard.className = 'instance-logo-card';
+  logoCard.innerHTML = `<img src="/static/logo.jpg" alt="DMS Instance Monitor" />`;
+  grid.appendChild(logoCard);
+
   let cAvail = 0, cInUse = 0, cUnk = 0;
 
   data.forEach(inst => {
