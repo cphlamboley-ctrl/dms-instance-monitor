@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: dms-instances
+    restart: unless-stopped
+    volumes:
+      # Montage de la DB pour qu'elle survive aux redémarrages
+      - ./backend/instances.db:/app/backend/instances.db
+    networks:
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      # Ajuster "traefik-net" et le nom du routeur si nécessaire selon la conf du serveur
+      - "traefik.http.routers.dmsinstances.rule=Host(`instances.cphlby.com`)"
+      - "traefik.http.routers.dmsinstances.entrypoints=websecure"
+      - "traefik.http.routers.dmsinstances.tls=true"
+      # Si Traefik gère automatiquement le TLS via Let's Encrypt (ex: certresolver "myresolver") :
+      - "traefik.http.routers.dmsinstances.tls.certresolver=myresolver"
+      - "traefik.http.services.dmsinstances.loadbalancer.server.port=8000"
+
+networks:
+  # Remplacer "traefik-net" par le nom exact du réseau Traefik existant sur le VPS
+  traefik-net:
+    external: true
