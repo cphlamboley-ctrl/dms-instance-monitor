@@ -955,3 +955,99 @@ textarea {
     margin: 0 18px;
   }
 }
+
+/* ─── PRINT (EXPORT TO PDF) ─────────────────────────────────────────────────── */
+@media print {
+
+  /* Hide all generic UI */
+  .app-header,
+  .instances-grid,
+  .app-footer,
+  .footer-copyright,
+  .panel-overlay,
+  .panel-actions,
+  .panel-feedback,
+  .panel-close,
+  #btnPrint,
+  .btn-icon {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  body,
+  .app-main {
+    background: white !important;
+    color: black !important;
+    margin: 0;
+    padding: 0;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* Make detail panel fill the page */
+  .detail-panel {
+    position: static;
+    width: 100%;
+    height: auto;
+    transform: none !important;
+    border: none;
+    box-shadow: none;
+    background: white !important;
+    color: black !important;
+  }
+
+  .panel-header {
+    background: white !important;
+    border-bottom: 2px solid #333;
+    padding: 0 0 20px 0;
+    margin-bottom: 20px;
+    align-items: center;
+  }
+
+  .panel-instance-badge {
+    border: 2px solid #333 !important;
+    color: black !important;
+    background: white !important;
+  }
+
+  .panel-title-block h2 {
+    color: black !important;
+  }
+
+  .panel-status-badge {
+    border: 1px solid #333 !important;
+    color: black !important;
+    background: white !important;
+  }
+
+  .panel-body {
+    padding: 0;
+  }
+
+  .info-row {
+    border-bottom: 1px solid #ccc !important;
+    padding: 10px 0;
+    break-inside: avoid;
+  }
+
+  .info-label {
+    color: #555 !important;
+    font-size: 14px;
+  }
+
+  .info-value {
+    color: black !important;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  /* Password styling for paper */
+  div[style*="background: rgba(0,0,0,0.2)"] {
+    background: #f8f8f8 !important;
+    border: 1px solid #aaa !important;
+  }
+
+  span[style*="color: var(--text-muted)"] {
+    color: #444 !important;
+  }
+}

@@ -213,6 +213,9 @@ function showReadMode(status) {
   btnAssign.style.display = (status !== 'in_use') ? 'inline-flex' : 'none';
   btnMaintenance.style.display = (status !== 'in_use') ? 'inline-flex' : 'none';
   btnFree.style.display = (status === 'in_use') ? 'inline-flex' : 'none';
+
+  // Show print btn if in_use
+  document.getElementById('btnPrint').style.display = (status === 'in_use') ? 'inline-flex' : 'none';
 }
 
 function showEditMode() {
@@ -222,6 +225,9 @@ function showEditMode() {
   panelBody.style.display = 'none';
   panelActions.style.display = 'none';
   editForm.style.display = 'flex';
+
+  // Hide print in edit mode
+  document.getElementById('btnPrint').style.display = 'none';
 
   // Pre-fill if already assigned
   document.getElementById('fieldUsedBy').value = inst.used_by || '';
@@ -260,6 +266,10 @@ btnCancelEdit.addEventListener('click', () => {
   const inst = instances.find(i => i.id === selectedId);
   const status = getStatus(inst);
   showReadMode(status);
+});
+
+document.getElementById('btnPrint').addEventListener('click', () => {
+  window.print();
 });
 
 btnFree.addEventListener('click', async () => {
