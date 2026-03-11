@@ -92,15 +92,6 @@
         <h2 id="panelTitle">Instance 9091</h2>
         <a id="panelUrl" href="#" target="_blank" rel="noopener noreferrer">—</a>
       </div>
-      <button class="btn-icon" id="btnPrint"
-        style="background: var(--glass-bg); padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); display: none; margin-right: 8px;"
-        title="Print Access Card">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="6 9 6 2 18 2 18 9"></polyline>
-          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-          <rect x="6" y="14" width="12" height="8"></rect>
-        </svg>
-      </button>
       <div class="panel-status-badge" id="panelStatusBadge">—</div>
     </div>
 
@@ -222,15 +213,26 @@
         </svg>
         Mark as Available
       </button>
-      <button class="btn btn-ghost" id="btnExit">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-          <polyline points="16 17 21 12 16 7"></polyline>
-          <line x1="21" y1="12" x2="9" y2="12"></line>
-        </svg>
-        Exit
-      </button>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-ghost" id="btnPrint" style="flex: 1; display: none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          Print
+        </button>
+        <button class="btn btn-ghost" id="btnExit" style="flex: 1;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Exit
+        </button>
+      </div>
     </div>
 
     <!-- EDIT FORM -->
