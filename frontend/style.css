@@ -1110,20 +1110,14 @@ textarea {
 
 .login-logo-large {
   width: 100%;
-  max-width: 300px;
+  max-width: 380px;
   margin: 0 auto 40px;
-  border-radius: 24px;
-  overflow: hidden;
-  background: #03050a;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   display: flex;
-  padding: 10px;
 }
 
 .login-logo-large img {
   width: 100%;
   height: auto;
-  border-radius: 18px;
 }
 
 .login-title {
