@@ -18,34 +18,38 @@
   <!-- ═══ LOGIN SCREEN ══════════════════════════════════════════════════ -->
   <div id="loginScreen" class="login-screen">
     <div class="login-box">
-      <div class="login-logo">
-        <img src="/static/logo.jpg" alt="DMS Logo" />
+      <div class="login-logo-large">
+        <img src="/static/logo-header.png?v=1" alt="DMS Logo" />
       </div>
-      <h2>DMS Instance Monitor</h2>
-      <p>Please sign in to access the monitor</p>
+
+      <h2 class="login-title">Login</h2>
+      <p class="login-subtitle">Please sign in to continue</p>
 
       <form id="loginForm">
-        <div class="form-group">
+        <div class="login-field">
           <label for="loginUser">Username</label>
-          <input type="text" id="loginUser" required placeholder="Enter username" />
+          <input type="text" id="loginUser" required />
         </div>
-        <div class="form-group">
+        <div class="login-field">
           <label for="loginPass">Password</label>
-          <input type="password" id="loginPass" required placeholder="Enter password" />
+          <input type="password" id="loginPass" required />
         </div>
         <div id="loginError" class="login-error" style="display:none;">
           Invalid credentials. Please try again.
         </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+        <button type="submit" class="btn-login">
           Sign In
         </button>
       </form>
+    </div>
+    <div class="login-footer">
+      ©2025–2026 Sportdata Gmbh & Co KG, powered by C. Lamboley — DMS V8.0 — <a href="#">User Manual</a>
     </div>
   </div>
 
   <div id="appContent" style="display:none;">
 
-    <!-- ═══ HEADER ═══════════════════════════════════════════════════════ -->
+    <!-- ═══ HEADER ═════════════════════════════════════════════════════════ -->
     <header class="app-header">
       <div class="header-left">
         <div class="logo-icon">
