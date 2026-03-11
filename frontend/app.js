@@ -29,6 +29,7 @@ const btnAssign = document.getElementById('btnAssign');
 const btnFree = document.getElementById('btnFree');
 const btnMaintenance = document.getElementById('btnMaintenance');
 const btnCancelEdit = document.getElementById('btnCancelEdit');
+const btnExit = document.getElementById('btnExit');
 const btnRefresh = document.getElementById('btnRefresh');
 const lastUpdated = document.getElementById('lastUpdated');
 const countAvail = document.getElementById('countAvailable');
@@ -216,6 +217,9 @@ function showReadMode(status) {
 
   // Show print btn if in_use
   document.getElementById('btnPrint').style.display = (status === 'in_use') ? 'inline-flex' : 'none';
+
+  // Show Exit button in read mode
+  btnExit.style.display = 'inline-flex';
 }
 
 function showEditMode() {
@@ -271,6 +275,8 @@ btnCancelEdit.addEventListener('click', () => {
 document.getElementById('btnPrint').addEventListener('click', () => {
   window.print();
 });
+
+btnExit.addEventListener('click', closePanel);
 
 btnFree.addEventListener('click', async () => {
   btnFree.disabled = true;
@@ -337,7 +343,8 @@ editForm.addEventListener('submit', async e => {
       password: password || null
     });
     syncInstance(updated);
-    closePanel();
+    showPanel(selectedId);
+    showFeedback('Instance configured successfully! Credits are displayed below.', 'success');
   } catch (err) {
     showFeedback('Error: ' + err.message, 'error');
   } finally {
