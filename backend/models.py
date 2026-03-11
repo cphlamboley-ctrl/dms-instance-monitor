@@ -8,6 +8,7 @@ class InstanceUpdate(BaseModel):
     date_from: Optional[str] = None
     date_to: Optional[str] = None
     notes: Optional[str] = None
+    password: Optional[str] = None
 
     @validator("status")
     def validate_status(cls, v):

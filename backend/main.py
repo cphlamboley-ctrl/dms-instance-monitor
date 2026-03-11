@@ -25,6 +25,10 @@ def startup_event():
     # Migrate legacy 'unknown' status to 'maintenance'
     conn = get_connection()
     conn.execute("UPDATE instances SET status='maintenance' WHERE status='unknown'")
+    try:
+        conn.execute("ALTER TABLE instances ADD COLUMN password TEXT")
+    except Exception:
+        pass # Column already exists
     conn.commit()
     conn.close()
 
@@ -45,7 +49,7 @@ def get_all_instances():
         if inst["status"] == "in_use" and inst["date_to"] and inst["date_to"] < today:
             conn = get_connection()
             conn.execute(
-                "UPDATE instances SET status='available', used_by=NULL, date_from=NULL, date_to=NULL WHERE id=?",
+                "UPDATE instances SET status='available', used_by=NULL, date_from=NULL, date_to=NULL, password=NULL WHERE id=?",
                 (inst["id"],)
             )
             conn.commit()
@@ -54,6 +58,7 @@ def get_all_instances():
             inst["used_by"] = None
             inst["date_from"] = None
             inst["date_to"] = None
+            inst["password"] = None
 
     return instances
 
@@ -83,7 +88,7 @@ def update_instance(instance_id: int, payload: InstanceUpdate):
     conn.execute(
         """
         UPDATE instances
-        SET status=?, used_by=?, date_from=?, date_to=?, notes=?
+        SET status=?, used_by=?, date_from=?, date_to=?, notes=?, password=?
         WHERE id=?
         """,
         (
@@ -92,6 +97,7 @@ def update_instance(instance_id: int, payload: InstanceUpdate):
             payload.date_from if keep_fields else None,
             payload.date_to   if keep_fields else None,
             payload.notes     if keep_fields else None,
+            payload.password  if keep_fields else None,
             instance_id,
         )
     )
@@ -111,7 +117,7 @@ def free_instance(instance_id: int):
         raise HTTPException(status_code=404, detail="Instance not found")
 
     conn.execute(
-        "UPDATE instances SET status='available', used_by=NULL, date_from=NULL, date_to=NULL, notes=NULL WHERE id=?",
+        "UPDATE instances SET status='available', used_by=NULL, date_from=NULL, date_to=NULL, notes=NULL, password=NULL WHERE id=?",
         (instance_id,)
     )
     conn.commit()
@@ -130,7 +136,7 @@ def maintenance_instance(instance_id: int):
         raise HTTPException(status_code=404, detail="Instance not found")
 
     conn.execute(
-        "UPDATE instances SET status='maintenance', used_by=NULL, date_from=NULL, date_to=NULL, notes=NULL WHERE id=?",
+        "UPDATE instances SET status='maintenance', used_by=NULL, date_from=NULL, date_to=NULL, notes=NULL, password=NULL WHERE id=?",
         (instance_id,)
     )
     conn.commit()

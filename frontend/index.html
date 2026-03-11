@@ -76,9 +76,10 @@
         <span class="legend-dot maintenance"></span> In Maintenance
       </span>
     </div>
-    <span class="footer-copy">Auto-refresh every 30s · DMS Instance Monitor v1.0</span>
+    <span class="footer-copy">Auto-refresh every 30s</span>
   </footer>
-  <div class="footer-copyright">©2026 Sportdata Gmbh &amp; Co KG, developed by C. Lamboley</div>
+  <div class="footer-copyright">©2026 Sportdata Gmbh &amp; Co KG, developed by C. Lamboley - DMS Instance Monitor V2.0
+  </div>
 
   <!-- ═══ DETAIL PANEL (SLIDE-IN) ═══════════════════════════════════════ -->
   <div class="panel-overlay" id="panelOverlay"></div>
@@ -111,6 +112,19 @@
       <div class="info-row">
         <span class="info-label">Notes</span>
         <span class="info-value" id="infoNotes">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Password</span>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span class="info-value" id="infoPassword"
+            style="font-family: monospace; font-size: 1.1em; color: var(--text-heading);">—</span>
+          <button type="button" id="btnCopyPwd" class="btn-icon" style="display:none;" title="Copy to clipboard">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -167,6 +181,17 @@
         <label for="fieldNotes">Notes <span class="optional">(optional)</span></label>
         <textarea id="fieldNotes" rows="2" placeholder="Competition name, event, etc."></textarea>
       </div>
+      <div class="form-group">
+        <label for="fieldPassword">Password <span class="required">*</span></label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="fieldPassword" required placeholder="e.g. jB7!vX9@" style="font-family: monospace;" />
+          <button type="button" class="btn btn-ghost" id="btnGenPwd" title="Generate Random Password">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M2.34 15.57a10 10 0 1 0 4.3-11.89L2.5 8"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
       <div class="form-actions">
         <button type="button" class="btn btn-ghost" id="btnCancelEdit">Cancel</button>
         <button type="submit" class="btn btn-primary" id="btnSave">
@@ -182,7 +207,7 @@
     </form>
   </aside>
 
-  <script src="/static/app.js?v=2"></script>
+  <script src="/static/app.js?v=3"></script>
 </body>
 
 </html>

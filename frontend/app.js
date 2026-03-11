@@ -153,6 +153,23 @@ function openPanel(id) {
   document.getElementById('infoTo').textContent = inst.date_to ? formatDate(inst.date_to) : '—';
   document.getElementById('infoNotes').textContent = inst.notes || '—';
 
+  const infoPassword = document.getElementById('infoPassword');
+  const btnCopyPwd = document.getElementById('btnCopyPwd');
+  if (inst.password) {
+    infoPassword.textContent = inst.password;
+    btnCopyPwd.style.display = 'inline-flex';
+    btnCopyPwd.onclick = () => {
+      navigator.clipboard.writeText(inst.password);
+      btnCopyPwd.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      setTimeout(() => {
+        btnCopyPwd.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+      }, 1500);
+    };
+  } else {
+    infoPassword.textContent = '—';
+    btnCopyPwd.style.display = 'none';
+  }
+
   hideFeedback();
   showReadMode(status);
 
@@ -192,6 +209,7 @@ function showEditMode() {
   document.getElementById('fieldFrom').value = inst.date_from || '';
   document.getElementById('fieldTo').value = inst.date_to || '';
   document.getElementById('fieldNotes').value = inst.notes || '';
+  document.getElementById('fieldPassword').value = inst.password || generatePassword();
 
   // Default From to today if empty
   if (!inst.date_from) {
@@ -201,9 +219,20 @@ function showEditMode() {
   editMode = true;
 }
 
+function generatePassword() {
+  // Evite les caractères ambigus (l, 1, I, O, 0)
+  const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!?#@*+';
+  let pwd = '';
+  for (let i = 0; i < 10; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+  return pwd;
+}
+
 // ─── Events ───────────────────────────────────────────────────────────────────
 overlay.addEventListener('click', closePanel);
 panelClose.addEventListener('click', closePanel);
+document.getElementById('btnGenPwd').addEventListener('click', () => {
+  document.getElementById('fieldPassword').value = generatePassword();
+});
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
 
 btnAssign.addEventListener('click', showEditMode);
@@ -254,8 +283,9 @@ editForm.addEventListener('submit', async e => {
   const dateFrom = document.getElementById('fieldFrom').value;
   const dateTo = document.getElementById('fieldTo').value;
   const notes = document.getElementById('fieldNotes').value.trim();
+  const password = document.getElementById('fieldPassword').value.trim();
 
-  if (!usedBy || !dateFrom || !dateTo) {
+  if (!usedBy || !dateFrom || !dateTo || !password) {
     showFeedback('Please fill in all required fields.', 'error');
     return;
   }
@@ -274,7 +304,8 @@ editForm.addEventListener('submit', async e => {
       used_by: usedBy,
       date_from: dateFrom,
       date_to: dateTo,
-      notes: notes || null
+      notes: notes || null,
+      password: password || null
     });
     syncInstance(updated);
     closePanel();

@@ -29,7 +29,8 @@ def init_db():
             used_by     TEXT,
             date_from   TEXT,
             date_to     TEXT,
-            notes       TEXT
+            notes       TEXT,
+            password    TEXT
         )
     """)
 
