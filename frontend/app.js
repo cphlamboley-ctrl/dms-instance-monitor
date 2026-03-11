@@ -423,7 +423,44 @@ function daysUntil(iso) {
   return Math.round((target - today) / 86_400_000);
 }
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
-showSkeletons();
-loadData();
-refreshTimer = setInterval(loadData, REFRESH_INTERVAL);
+// ─── Login Logic ──────────────────────────────────────────────────────────────
+const LOGIN_STORAGE_KEY = 'dms_monitor_auth';
+
+function checkAuth() {
+  const isAuth = localStorage.getItem(LOGIN_STORAGE_KEY) === 'true';
+  const loginScreen = document.getElementById('loginScreen');
+  const appContent = document.getElementById('appContent');
+
+  if (isAuth) {
+    loginScreen.style.display = 'none';
+    appContent.style.display = 'block';
+    init(); // load data only if auth
+  } else {
+    loginScreen.style.display = 'flex';
+    appContent.style.display = 'none';
+  }
+}
+
+document.getElementById('loginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const user = document.getElementById('loginUser').value;
+  const pass = document.getElementById('loginPass').value;
+  const errorEl = document.getElementById('loginError');
+
+  if (user === 'superuser' && pass === 'CphLby@2026!') {
+    localStorage.setItem(LOGIN_STORAGE_KEY, 'true');
+    errorEl.style.display = 'none';
+    checkAuth();
+  } else {
+    errorEl.style.display = 'block';
+  }
+});
+
+function init() {
+  showSkeletons();
+  loadData();
+  refreshTimer = setInterval(loadData, REFRESH_INTERVAL);
+}
+
+// Start with auth check
+checkAuth();

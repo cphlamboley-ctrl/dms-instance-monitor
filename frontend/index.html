@@ -15,271 +15,303 @@
 </head>
 
 <body>
+  <!-- ═══ LOGIN SCREEN ══════════════════════════════════════════════════ -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-box">
+      <div class="login-logo">
+        <img src="/static/logo.jpg" alt="DMS Logo" />
+      </div>
+      <h2>DMS Instance Monitor</h2>
+      <p>Please sign in to access the monitor</p>
 
-  <!-- ═══ HEADER ═══════════════════════════════════════════════════════ -->
-  <header class="app-header">
-    <div class="header-left">
-      <div class="logo-icon">
-        <img src="/static/logo-header.png?v=1" alt="DMS Instance Monitor Logo" />
-      </div>
-      <div class="header-titles">
-        <h1>DMS Instance Monitor</h1>
-        <span class="header-subtitle">sportdata.org · 29 instances tracked</span>
-      </div>
-    </div>
-    <div class="header-right">
-      <div class="stats-bar" id="statsBar">
-        <div class="stat-chip available">
-          <span class="dot"></span>
-          <span id="countAvailable">—</span> Available
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginUser">Username</label>
+          <input type="text" id="loginUser" required placeholder="Enter username" />
         </div>
-        <div class="stat-chip in-use">
-          <span class="dot"></span>
-          <span id="countInUse">—</span> In Use
+        <div class="form-group">
+          <label for="loginPass">Password</label>
+          <input type="password" id="loginPass" required placeholder="Enter password" />
         </div>
-        <div class="stat-chip maintenance">
-          <span class="dot"></span>
-          <span id="countUnknown">—</span> In Maintenance
+        <div id="loginError" class="login-error" style="display:none;">
+          Invalid credentials. Please try again.
         </div>
-      </div>
-      <div class="refresh-info">
-        <span id="lastUpdated">Updating…</span>
-        <button class="btn-refresh" id="btnRefresh" title="Refresh now">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 4v5h5M20 20v-5h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round" />
-            <path d="M4 9A9 9 0 0 1 19.39 7M20 15a9 9 0 0 1-15.39 2" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" />
-          </svg>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+          Sign In
         </button>
-      </div>
+      </form>
     </div>
-  </header>
-
-  <!-- ═══ MAIN GRID ═════════════════════════════════════════════════════ -->
-  <main class="app-main">
-    <div class="instances-grid" id="instancesGrid">
-      <!-- Buttons injected by JS -->
-    </div>
-  </main>
-
-  <!-- ═══ LEGEND ════════════════════════════════════════════════════════ -->
-  <footer class="app-footer">
-    <div class="legend">
-      <span class="legend-item">
-        <span class="legend-dot available"></span> Available
-      </span>
-      <span class="legend-item">
-        <span class="legend-dot in-use"></span> In Use
-      </span>
-      <span class="legend-item">
-        <span class="legend-dot maintenance"></span> In Maintenance
-      </span>
-    </div>
-    <span class="footer-copy">Auto-refresh every 30s</span>
-  </footer>
-  <div class="footer-copyright">©2026 Sportdata Gmbh &amp; Co KG, developed by C. Lamboley - DMS Instance Monitor V2.0
   </div>
 
-  <!-- ═══ DETAIL PANEL (SLIDE-IN) ═══════════════════════════════════════ -->
-  <div class="panel-overlay" id="panelOverlay"></div>
-  <aside class="detail-panel" id="detailPanel" role="dialog" aria-modal="true" aria-label="Instance Details">
-    <button class="panel-close" id="panelClose" title="Close">✕</button>
+  <div id="appContent" style="display:none;">
 
-    <div class="panel-header">
-      <div class="panel-instance-badge" id="panelBadge">9091</div>
-      <div class="panel-title-block">
-        <h2 id="panelTitle">Instance 9091</h2>
-        <a id="panelUrl" href="#" target="_blank" rel="noopener noreferrer">—</a>
-      </div>
-      <div class="panel-status-badge" id="panelStatusBadge">—</div>
-    </div>
-
-    <!-- READ VIEW -->
-    <div class="panel-body" id="panelBody">
-      <div class="info-row">
-        <span class="info-label">Used By</span>
-        <span class="info-value" id="infoUsedBy">—</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">From</span>
-        <span class="info-value" id="infoFrom">—</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">To</span>
-        <span class="info-value" id="infoTo">—</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Notes</span>
-        <span class="info-value" id="infoNotes">—</span>
-      </div>
-      <div class="info-row"
-        style="flex-direction: column; align-items: stretch; border-top: 1px solid var(--glass-border); padding-top: 18px; border-bottom: none;">
-        <span class="info-label" style="text-align: left; margin-bottom: 12px; width: 100%;">Access Passwords</span>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-
-          <!-- Admin -->
-          <div
-            style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 6px;">
-            <span
-              style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); width: 68px; text-transform: uppercase; letter-spacing: 0.05em;">Admin</span>
-            <span class="info-value" id="infoPassword"
-              style="font-family: inherit; font-weight: 600; color: var(--accent); flex: 1; text-align: left; font-size: 1.05em;">—</span>
-            <button type="button" id="btnCopyPwd" class="btn-icon" style="display:none;" title="Copy to clipboard">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-            </button>
-          </div>
-
-          <!-- Arrival -->
-          <div class="pwd-extra"
-            style="display: none; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 6px;">
-            <span
-              style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); width: 68px; text-transform: uppercase; letter-spacing: 0.05em;">Arrival</span>
-            <span class="info-value" id="infoPwdArrival"
-              style="font-family: inherit; font-weight: 600; flex: 1; text-align: left; font-size: 1.05em; color: var(--text-heading);">—</span>
-            <button type="button" id="btnCopyPwdArr" class="btn-icon" title="Copy to clipboard">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-            </button>
-          </div>
-
-          <!-- Desk -->
-          <div class="pwd-extra"
-            style="display: none; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 6px;">
-            <span
-              style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); width: 68px; text-transform: uppercase; letter-spacing: 0.05em;">Desk</span>
-            <span class="info-value" id="infoPwdDesk"
-              style="font-family: inherit; font-weight: 600; flex: 1; text-align: left; font-size: 1.05em; color: var(--text-heading);">—</span>
-            <button type="button" id="btnCopyPwdDesk" class="btn-icon" title="Copy to clipboard">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-            </button>
-          </div>
-
-          <!-- Display -->
-          <div class="pwd-extra"
-            style="display: none; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 6px;">
-            <span
-              style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); width: 68px; text-transform: uppercase; letter-spacing: 0.05em;">Display</span>
-            <span class="info-value" id="infoPwdDisplay"
-              style="font-family: inherit; font-weight: 600; flex: 1; text-align: left; font-size: 1.05em; color: var(--text-heading);">—</span>
-            <button type="button" id="btnCopyPwdDisp" class="btn-icon" title="Copy to clipboard">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-            </button>
-          </div>
-
+    <!-- ═══ HEADER ═══════════════════════════════════════════════════════ -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-icon">
+          <img src="/static/logo-header.png?v=1" alt="DMS Instance Monitor Logo" />
+        </div>
+        <div class="header-titles">
+          <h1>DMS Instance Monitor</h1>
+          <span class="header-subtitle">sportdata.org · 29 instances tracked</span>
         </div>
       </div>
-    </div>
-
-    <!-- ERROR/SUCCESS FEEDBACK -->
-    <div class="panel-feedback" id="panelFeedback"></div>
-
-    <!-- ACTION BUTTONS -->
-    <div class="panel-actions" id="panelActions">
-      <button class="btn btn-primary" id="btnAssign">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" />
-          <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" />
-          <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" />
-        </svg>
-        Assign Instance
-      </button>
-      <button class="btn btn-maintenance" id="btnMaintenance">
-        <svg viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
-          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" />
-          <circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="currentColor" stroke-width="1.5" />
-        </svg>
-        In Maintenance
-      </button>
-      <button class="btn btn-danger" id="btnFree" style="display:none;">
-        <svg viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
-          <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-        </svg>
-        Mark as Available
-      </button>
-      <div style="display: flex; gap: 8px;">
-        <button class="btn btn-ghost" id="btnPrint" style="flex: 1; display: none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <polyline points="6 9 6 2 18 2 18 9"></polyline>
-            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-            <rect x="6" y="14" width="12" height="8"></rect>
-          </svg>
-          Print
-        </button>
-        <button class="btn btn-ghost" id="btnExit" style="flex: 1;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-          Exit
-        </button>
-      </div>
-    </div>
-
-    <!-- EDIT FORM -->
-    <form class="edit-form" id="editForm" style="display:none;">
-      <div class="form-group">
-        <label for="fieldUsedBy">Used By <span class="required">*</span></label>
-        <input type="text" id="fieldUsedBy" placeholder="e.g. John Smith (Club XYZ)" required />
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="fieldFrom">From <span class="required">*</span></label>
-          <input type="date" id="fieldFrom" required />
+      <div class="header-right">
+        <div class="stats-bar" id="statsBar">
+          <div class="stat-chip available">
+            <span class="dot"></span>
+            <span id="countAvailable">—</span> Available
+          </div>
+          <div class="stat-chip in-use">
+            <span class="dot"></span>
+            <span id="countInUse">—</span> In Use
+          </div>
+          <div class="stat-chip maintenance">
+            <span class="dot"></span>
+            <span id="countUnknown">—</span> In Maintenance
+          </div>
         </div>
-        <div class="form-group">
-          <label for="fieldTo">To <span class="required">*</span></label>
-          <input type="date" id="fieldTo" required />
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="fieldNotes">Notes <span class="optional">(optional)</span></label>
-        <textarea id="fieldNotes" rows="2" placeholder="Competition name, event, etc."></textarea>
-      </div>
-      <div class="form-group">
-        <label for="fieldPassword">Password <span class="required">*</span></label>
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="fieldPassword" required placeholder="e.g. jB7!vX9@" style="font-family: monospace;" />
-          <button type="button" class="btn btn-ghost" id="btnGenPwd" title="Generate Random Password">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21.5 2v6h-6M2.34 15.57a10 10 0 1 0 4.3-11.89L2.5 8"></path>
+        <div class="refresh-info">
+          <span id="lastUpdated">Updating…</span>
+          <button class="btn-refresh" id="btnRefresh" title="Refresh now">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 4v5h5M20 20v-5h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+              <path d="M4 9A9 9 0 0 1 19.39 7M20 15a9 9 0 0 1-15.39 2" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" />
             </svg>
           </button>
         </div>
       </div>
-      <div class="form-actions">
-        <button type="button" class="btn btn-ghost" id="btnCancelEdit">Cancel</button>
-        <button type="submit" class="btn btn-primary" id="btnSave">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke="currentColor"
-              stroke-width="2" />
-            <polyline points="17 21 17 13 7 13 7 21" stroke="currentColor" stroke-width="2" />
-            <polyline points="7 3 7 8 15 8" stroke="currentColor" stroke-width="2" />
-          </svg>
-          Save
-        </button>
+    </header>
+
+    <!-- ═══ MAIN GRID ═════════════════════════════════════════════════════ -->
+    <main class="app-main">
+      <div class="instances-grid" id="instancesGrid">
+        <!-- Buttons injected by JS -->
       </div>
-    </form>
-  </aside>
+    </main>
+
+    <!-- ═══ LEGEND ════════════════════════════════════════════════════════ -->
+    <footer class="app-footer">
+      <div class="legend">
+        <span class="legend-item">
+          <span class="legend-dot available"></span> Available
+        </span>
+        <span class="legend-item">
+          <span class="legend-dot in-use"></span> In Use
+        </span>
+        <span class="legend-item">
+          <span class="legend-dot maintenance"></span> In Maintenance
+        </span>
+      </div>
+      <span class="footer-copy">Auto-refresh every 30s</span>
+    </footer>
+    <div class="footer-copyright">©2026 Sportdata Gmbh &amp; Co KG, developed by C. Lamboley - DMS Instance Monitor V2.0
+    </div>
+
+    <!-- ═══ DETAIL PANEL (SLIDE-IN) ═══════════════════════════════════════ -->
+    <div class="panel-overlay" id="panelOverlay"></div>
+    <aside class="detail-panel" id="detailPanel" role="dialog" aria-modal="true" aria-label="Instance Details">
+      <button class="panel-close" id="panelClose" title="Close">✕</button>
+
+      <div class="panel-header">
+        <div class="panel-instance-badge" id="panelBadge">9091</div>
+        <div class="panel-title-block">
+          <h2 id="panelTitle">Instance 9091</h2>
+          <a id="panelUrl" href="#" target="_blank" rel="noopener noreferrer">—</a>
+        </div>
+        <div class="panel-status-badge" id="panelStatusBadge">—</div>
+      </div>
+
+      <!-- READ VIEW -->
+      <div class="panel-body" id="panelBody">
+        <div class="info-row">
+          <span class="info-label">Used By</span>
+          <span class="info-value" id="infoUsedBy">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">From</span>
+          <span class="info-value" id="infoFrom">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">To</span>
+          <span class="info-value" id="infoTo">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Notes</span>
+          <span class="info-value" id="infoNotes">—</span>
+        </div>
+        <div class="info-row"
+          style="flex-direction: column; align-items: stretch; border-top: 1px solid var(--glass-border); padding-top: 18px; border-bottom: none;">
+          <span class="info-label" style="text-align: left; margin-bottom: 12px; width: 100%;">Access Passwords</span>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+
+            <!-- Admin -->
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 6px;">
+              <span
+                style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); width: 68px; text-transform: uppercase; letter-spacing: 0.05em;">Admin</span>
+              <span class="info-value" id="infoPassword"
+                style="font-family: inherit; font-weight: 600; color: var(--accent); flex: 1; text-align: left; font-size: 1.05em;">—</span>
+              <button type="button" id="btnCopyPwd" class="btn-icon" style="display:none;" title="Copy to clipboard">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Arrival -->
+            <div class="pwd-extra"
+              style="display: none; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 6px;">
+              <span
+                style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); width: 68px; text-transform: uppercase; letter-spacing: 0.05em;">Arrival</span>
+              <span class="info-value" id="infoPwdArrival"
+                style="font-family: inherit; font-weight: 600; flex: 1; text-align: left; font-size: 1.05em; color: var(--text-heading);">—</span>
+              <button type="button" id="btnCopyPwdArr" class="btn-icon" title="Copy to clipboard">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Desk -->
+            <div class="pwd-extra"
+              style="display: none; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 6px;">
+              <span
+                style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); width: 68px; text-transform: uppercase; letter-spacing: 0.05em;">Desk</span>
+              <span class="info-value" id="infoPwdDesk"
+                style="font-family: inherit; font-weight: 600; flex: 1; text-align: left; font-size: 1.05em; color: var(--text-heading);">—</span>
+              <button type="button" id="btnCopyPwdDesk" class="btn-icon" title="Copy to clipboard">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Display -->
+            <div class="pwd-extra"
+              style="display: none; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 6px;">
+              <span
+                style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); width: 68px; text-transform: uppercase; letter-spacing: 0.05em;">Display</span>
+              <span class="info-value" id="infoPwdDisplay"
+                style="font-family: inherit; font-weight: 600; flex: 1; text-align: left; font-size: 1.05em; color: var(--text-heading);">—</span>
+              <button type="button" id="btnCopyPwdDisp" class="btn-icon" title="Copy to clipboard">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ERROR/SUCCESS FEEDBACK -->
+      <div class="panel-feedback" id="panelFeedback"></div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="panel-actions" id="panelActions">
+        <button class="btn btn-primary" id="btnAssign">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" />
+            <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" />
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" />
+          </svg>
+          Assign Instance
+        </button>
+        <button class="btn btn-maintenance" id="btnMaintenance">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" />
+            <circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="currentColor" stroke-width="1.5" />
+          </svg>
+          In Maintenance
+        </button>
+        <button class="btn btn-danger" id="btnFree" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+            <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          Mark as Available
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-ghost" id="btnPrint" style="flex: 1; display: none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="6 9 6 2 18 2 18 9"></polyline>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+              <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>
+            Print
+          </button>
+          <button class="btn btn-ghost" id="btnExit" style="flex: 1;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Exit
+          </button>
+        </div>
+      </div>
+
+      <!-- EDIT FORM -->
+      <form class="edit-form" id="editForm" style="display:none;">
+        <div class="form-group">
+          <label for="fieldUsedBy">Used By <span class="required">*</span></label>
+          <input type="text" id="fieldUsedBy" placeholder="e.g. John Smith (Club XYZ)" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fieldFrom">From <span class="required">*</span></label>
+            <input type="date" id="fieldFrom" required />
+          </div>
+          <div class="form-group">
+            <label for="fieldTo">To <span class="required">*</span></label>
+            <input type="date" id="fieldTo" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="fieldNotes">Notes <span class="optional">(optional)</span></label>
+          <textarea id="fieldNotes" rows="2" placeholder="Competition name, event, etc."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="fieldPassword">Password <span class="required">*</span></label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="fieldPassword" required placeholder="e.g. jB7!vX9@"
+              style="font-family: monospace;" />
+            <button type="button" class="btn btn-ghost" id="btnGenPwd" title="Generate Random Password">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M2.34 15.57a10 10 0 1 0 4.3-11.89L2.5 8"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="btnCancelEdit">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSave">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke="currentColor"
+                stroke-width="2" />
+              <polyline points="17 21 17 13 7 13 7 21" stroke="currentColor" stroke-width="2" />
+              <polyline points="7 3 7 8 15 8" stroke="currentColor" stroke-width="2" />
+            </svg>
+            Save
+          </button>
+        </div>
+      </form>
+    </aside>
+
+  </div> <!-- end #appContent -->
 
   <script src="/static/app.js?v=3"></script>
 </body>
