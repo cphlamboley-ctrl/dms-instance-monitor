@@ -235,9 +235,9 @@ body::before {
 }
 
 .btn-logout {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  color: var(--text-muted);
+  background: var(--in-use-dim);
+  border: 1px solid var(--in-use);
+  color: var(--in-use);
   padding: 8px;
   border-radius: 10px;
   cursor: pointer;
@@ -249,9 +249,8 @@ body::before {
 }
 
 .btn-logout:hover {
-  background: var(--in-use-dim);
-  color: var(--in-use);
-  border-color: var(--in-use);
+  background: var(--in-use);
+  color: white;
   transform: translateY(-1px);
 }
 
