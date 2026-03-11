@@ -31,7 +31,11 @@ def init_db():
             date_from   TEXT,
             date_to     TEXT,
             notes       TEXT,
-            password    TEXT
+            notes       TEXT,
+            password    TEXT,
+            pwd_arrival TEXT,
+            pwd_desk    TEXT,
+            pwd_display TEXT
         )
     """)
 

@@ -113,17 +113,71 @@
         <span class="info-label">Notes</span>
         <span class="info-value" id="infoNotes">—</span>
       </div>
-      <div class="info-row">
-        <span class="info-label">Password</span>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <span class="info-value" id="infoPassword"
-            style="font-family: monospace; font-size: 1.1em; color: var(--text-heading);">—</span>
-          <button type="button" id="btnCopyPwd" class="btn-icon" style="display:none;" title="Copy to clipboard">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-          </button>
+      <div class="info-row"
+        style="flex-direction: column; align-items: stretch; border-top: 1px solid var(--glass-border); padding-top: 18px; border-bottom: none;">
+        <span class="info-label" style="text-align: left; margin-bottom: 12px; width: 100%;">Access Passwords</span>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+
+          <!-- Admin -->
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 6px;">
+            <span
+              style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); width: 68px; text-transform: uppercase; letter-spacing: 0.05em;">Admin</span>
+            <span class="info-value" id="infoPassword"
+              style="font-family: inherit; font-weight: 600; color: var(--accent); flex: 1; text-align: left; font-size: 1.05em;">—</span>
+            <button type="button" id="btnCopyPwd" class="btn-icon" style="display:none;" title="Copy to clipboard">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Arrival -->
+          <div class="pwd-extra"
+            style="display: none; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 6px;">
+            <span
+              style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); width: 68px; text-transform: uppercase; letter-spacing: 0.05em;">Arrival</span>
+            <span class="info-value" id="infoPwdArrival"
+              style="font-family: inherit; font-weight: 600; flex: 1; text-align: left; font-size: 1.05em; color: var(--text-heading);">—</span>
+            <button type="button" id="btnCopyPwdArr" class="btn-icon" title="Copy to clipboard">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Desk -->
+          <div class="pwd-extra"
+            style="display: none; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 6px;">
+            <span
+              style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); width: 68px; text-transform: uppercase; letter-spacing: 0.05em;">Desk</span>
+            <span class="info-value" id="infoPwdDesk"
+              style="font-family: inherit; font-weight: 600; flex: 1; text-align: left; font-size: 1.05em; color: var(--text-heading);">—</span>
+            <button type="button" id="btnCopyPwdDesk" class="btn-icon" title="Copy to clipboard">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Display -->
+          <div class="pwd-extra"
+            style="display: none; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 6px;">
+            <span
+              style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); width: 68px; text-transform: uppercase; letter-spacing: 0.05em;">Display</span>
+            <span class="info-value" id="infoPwdDisplay"
+              style="font-family: inherit; font-weight: 600; flex: 1; text-align: left; font-size: 1.05em; color: var(--text-heading);">—</span>
+            <button type="button" id="btnCopyPwdDisp" class="btn-icon" title="Copy to clipboard">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+
         </div>
       </div>
     </div>

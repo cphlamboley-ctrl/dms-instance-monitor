@@ -153,21 +153,40 @@ function openPanel(id) {
   document.getElementById('infoTo').textContent = inst.date_to ? formatDate(inst.date_to) : '—';
   document.getElementById('infoNotes').textContent = inst.notes || '—';
 
-  const infoPassword = document.getElementById('infoPassword');
-  const btnCopyPwd = document.getElementById('btnCopyPwd');
-  if (inst.password) {
-    infoPassword.textContent = inst.password;
-    btnCopyPwd.style.display = 'inline-flex';
-    btnCopyPwd.onclick = () => {
-      navigator.clipboard.writeText(inst.password);
-      btnCopyPwd.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+  function setupCopyBtn(btn, text) {
+    if (!text) {
+      btn.style.display = 'none';
+      return;
+    }
+    btn.style.display = 'inline-flex';
+    btn.onclick = () => {
+      navigator.clipboard.writeText(text);
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>';
       setTimeout(() => {
-        btnCopyPwd.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
       }, 1500);
     };
+  }
+
+  const infoPassword = document.getElementById('infoPassword');
+  const btnCopyPwd = document.getElementById('btnCopyPwd');
+  const pwdExtras = document.querySelectorAll('.pwd-extra');
+  if (inst.password) {
+    infoPassword.textContent = inst.password;
+    setupCopyBtn(btnCopyPwd, inst.password);
+
+    document.getElementById('infoPwdArrival').textContent = inst.pwd_arrival || '—';
+    setupCopyBtn(document.getElementById('btnCopyPwdArr'), inst.pwd_arrival);
+    document.getElementById('infoPwdDesk').textContent = inst.pwd_desk || '—';
+    setupCopyBtn(document.getElementById('btnCopyPwdDesk'), inst.pwd_desk);
+    document.getElementById('infoPwdDisplay').textContent = inst.pwd_display || '—';
+    setupCopyBtn(document.getElementById('btnCopyPwdDisp'), inst.pwd_display);
+
+    pwdExtras.forEach(el => el.style.display = 'flex');
   } else {
     infoPassword.textContent = '—';
     btnCopyPwd.style.display = 'none';
+    pwdExtras.forEach(el => el.style.display = 'none');
   }
 
   hideFeedback();
