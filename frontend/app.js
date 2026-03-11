@@ -343,7 +343,7 @@ editForm.addEventListener('submit', async e => {
       password: password || null
     });
     syncInstance(updated);
-    showPanel(selectedId);
+    openPanel(selectedId);
     showFeedback('Instance configured successfully! Credits are displayed below.', 'success');
   } catch (err) {
     showFeedback('Error: ' + err.message, 'error');
