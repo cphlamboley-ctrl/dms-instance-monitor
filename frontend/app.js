@@ -31,6 +31,7 @@ const btnMaintenance = document.getElementById('btnMaintenance');
 const btnCancelEdit = document.getElementById('btnCancelEdit');
 const btnExit = document.getElementById('btnExit');
 const btnRefresh = document.getElementById('btnRefresh');
+const btnLogout = document.getElementById('btnLogout');
 const lastUpdated = document.getElementById('lastUpdated');
 const countAvail = document.getElementById('countAvailable');
 const countInUse = document.getElementById('countInUse');
@@ -461,6 +462,12 @@ function init() {
   loadData();
   refreshTimer = setInterval(loadData, REFRESH_INTERVAL);
 }
+
+btnLogout.addEventListener('click', () => {
+  localStorage.removeItem(LOGIN_STORAGE_KEY);
+  if (refreshTimer) clearInterval(refreshTimer);
+  checkAuth();
+});
 
 // Start with auth check
 checkAuth();
