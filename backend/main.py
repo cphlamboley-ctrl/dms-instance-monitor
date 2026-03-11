@@ -5,7 +5,28 @@ from fastapi.responses import FileResponse
 from database import init_db, get_connection
 from models import InstanceUpdate
 import os
+import json
+import urllib.request
+import secrets
 from datetime import date
+
+INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", "super_secret_token_dms_local")
+
+def send_password_to_instance(instance_url: str, new_password: str):
+    """Envoie le nouveau mot de passe à l'API interne de l'instance DMS ciblée."""
+    endpoint = f"{instance_url.rstrip('/')}/api/internal/reset-credentials"
+    data = json.dumps({"password": new_password}).encode("utf-8")
+    
+    req = urllib.request.Request(endpoint, data=data, method="POST")
+    req.add_header("Content-Type", "application/json")
+    req.add_header("X-Internal-Token", INTERNAL_API_TOKEN)
+    
+    try:
+        with urllib.request.urlopen(req, timeout=5) as response:
+            return response.status == 200
+    except Exception as e:
+        print(f"Failed to update password for {instance_url}: {e}")
+        return False
 
 app = FastAPI(title="DMS Instance Tracker", version="1.0.0")
 
@@ -29,6 +50,12 @@ def startup_event():
         conn.execute("ALTER TABLE instances ADD COLUMN password TEXT")
     except Exception:
         pass # Column already exists
+    
+    # Check if 'test' instance exists
+    row = conn.execute("SELECT id FROM instances WHERE port='test'").fetchone()
+    if not row:
+        conn.execute("INSERT INTO instances (id, port, url, status) VALUES (30, 'test', 'https://dms.cphlby.com', 'available')")
+
     conn.commit()
     conn.close()
 
@@ -101,6 +128,11 @@ def update_instance(instance_id: int, payload: InstanceUpdate):
             instance_id,
         )
     )
+    
+    # ─── COMMUNICATION AVEC L'INSTANCE DMS ───
+    if keep_fields and payload.password:
+        send_password_to_instance(row["url"], payload.password)
+        
     conn.commit()
     updated = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
     conn.close()
@@ -120,6 +152,12 @@ def free_instance(instance_id: int):
         "UPDATE instances SET status='available', used_by=NULL, date_from=NULL, date_to=NULL, notes=NULL, password=NULL WHERE id=?",
         (instance_id,)
     )
+    
+    # ─── VERROUILLAGE DE L'INSTANCE DMS ───
+    # Génère un mot de passe impossible à deviner pour révoquer les accès actuels
+    lock_password = secrets.token_urlsafe(32)
+    send_password_to_instance(row["url"], lock_password)
+
     conn.commit()
     updated = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
     conn.close()
@@ -139,6 +177,11 @@ def maintenance_instance(instance_id: int):
         "UPDATE instances SET status='maintenance', used_by=NULL, date_from=NULL, date_to=NULL, notes=NULL, password=NULL WHERE id=?",
         (instance_id,)
     )
+    
+    # ─── VERROUILLAGE DE L'INSTANCE DMS ───
+    lock_password = secrets.token_urlsafe(32)
+    send_password_to_instance(row["url"], lock_password)
+
     conn.commit()
     updated = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
     conn.close()

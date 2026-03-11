@@ -8,6 +8,7 @@ INSTANCES = [
     {"id": i + 1, "port": 9091 + i, "url": f"https://dms.sportdata.org:{9091 + i}"}
     for i in range(29)
 ]
+INSTANCES.append({"id": 30, "port": "test", "url": "https://dms.cphlby.com"})
 
 
 def get_connection():
@@ -41,7 +42,7 @@ def init_db():
         for inst in INSTANCES:
             cursor.execute(
                 "INSERT INTO instances (id, port, url, status) VALUES (?, ?, ?, 'available')",
-                (inst["id"], inst["port"], inst["url"])
+                (inst["id"], str(inst["port"]), inst["url"])
             )
 
     conn.commit()
