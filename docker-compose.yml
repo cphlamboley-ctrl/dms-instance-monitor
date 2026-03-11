@@ -5,6 +5,8 @@ services:
     build: .
     container_name: dms-instances
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:8011:8000"
     volumes:
       # Montage de la DB pour qu'elle survive aux redémarrages
       - ./backend/instances.db:/app/backend/instances.db
