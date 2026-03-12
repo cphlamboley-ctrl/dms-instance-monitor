@@ -20,5 +20,9 @@ class InstanceUpdate(BaseModel):
         return v
 
 
-class InstanceFree(BaseModel):
-    pass
+
+class InstanceAdmin(BaseModel):
+    id: Optional[int] = None
+    port: str
+    url: str
+    internal_url: Optional[str] = None

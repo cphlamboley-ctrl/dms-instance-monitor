@@ -376,6 +376,13 @@ async function loadData() {
     const data = await fetchAll();
     instances = data;
     renderGrid(data);
+    
+    // Update subtitle count
+    const subtitle = document.querySelector('.header-subtitle');
+    if (subtitle) {
+      subtitle.textContent = `sportdata.org · ${data.length} instances tracked`;
+    }
+
     lastUpdated.textContent = 'Updated ' + new Date().toLocaleTimeString();
   } catch (err) {
     lastUpdated.textContent = 'Error loading data';

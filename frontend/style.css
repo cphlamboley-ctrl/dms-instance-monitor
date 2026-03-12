@@ -132,6 +132,39 @@ body::before {
   gap: 20px;
 }
 
+/* ─── NAVIGATION BUTTONS ─────────────────────────────────────── */
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: rgba(255, 255, 255, 0.05); /* Slightly more visible */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #fff; /* Direct white for better contrast */
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.nav-btn:hover {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.nav-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.nav-btn svg {
+  flex-shrink: 0;
+}
+
 /* ─── STATS BAR ─────────────────────────────────────────────── */
 .stats-bar {
   display: flex;

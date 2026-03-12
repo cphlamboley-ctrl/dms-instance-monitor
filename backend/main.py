@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from database import init_db, get_connection
-from models import InstanceUpdate
+from models import InstanceUpdate, InstanceAdmin
 import os
 import json
 import urllib.request
@@ -237,7 +237,79 @@ def maintenance_instance(instance_id: int):
     return dict(updated)
 
 
-# ─── Serve Frontend ──────────────────────────────────────────────────────────
+
+# ─── ADMIN ROUTES ─────────────────────────────────────────────────────────────
+
+@app.post("/api/admin/instances")
+def create_instance(payload: InstanceAdmin):
+    """Add a new instance to the monitor."""
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO instances (port, url, internal_url, status) VALUES (?, ?, ?, 'available')",
+            (payload.port, payload.url, payload.internal_url)
+        )
+        new_id = cursor.lastrowid
+        conn.commit()
+        row = conn.execute("SELECT * FROM instances WHERE id=?", (new_id,)).fetchone()
+        return dict(row)
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+    finally:
+        conn.close()
+
+
+@app.put("/api/admin/instances/{instance_id}")
+def update_instance_config(instance_id: int, payload: InstanceAdmin):
+    """Update an instance's configuration (port, urls)."""
+    conn = get_connection()
+    row = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Instance not found")
+
+    conn.execute(
+        "UPDATE instances SET port=?, url=?, internal_url=? WHERE id=?",
+        (payload.port, payload.url, payload.internal_url, instance_id)
+    )
+    conn.commit()
+    updated = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
+    conn.close()
+    return dict(updated)
+
+
+@app.delete("/api/admin/instances/{instance_id}")
+def delete_instance(instance_id: int):
+    """Remove an instance from the monitor."""
+    conn = get_connection()
+    row = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Instance not found")
+
+    conn.execute("DELETE FROM instances WHERE id=?", (instance_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "deleted", "id": instance_id}
+
+
+@app.post("/api/admin/test-connection")
+async def test_instance_connection(payload: dict):
+    """Test if an instance is reachable via its internal or public URL."""
+    url = payload.get("url")
+    if not url:
+        raise HTTPException(status_code=400, detail="URL is required")
+    
+    # Simple check: try to reach the API info or just the root
+    # We use a 3-second timeout to avoid hanging the UI
+    try:
+        req = urllib.request.Request(url, method="GET")
+        with urllib.request.urlopen(req, timeout=3) as response:
+            return {"status": "ok", "code": response.status}
+    except Exception as e:
+        return {"status": "failed", "detail": str(e)}
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
 
@@ -247,3 +319,8 @@ app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 @app.get("/")
 def serve_index():
     return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+
+
+@app.get("/manager")
+def serve_manager():
+    return FileResponse(os.path.join(FRONTEND_DIR, "manager.html"))
