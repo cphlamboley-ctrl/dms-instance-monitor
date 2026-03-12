@@ -12,9 +12,10 @@ from datetime import date
 
 INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", "super_secret_token_dms_local")
 
-def send_passwords_to_instance(instance_url: str, passwords: dict):
+def send_passwords_to_instance(instance_url: str, passwords: dict, internal_url: str = None):
     """Envoie les nouveaux mots de passe à l'API interne de l'instance DMS ciblée."""
-    endpoint = f"{instance_url.rstrip('/')}/api/internal/reset-credentials"
+    target = internal_url if internal_url else instance_url
+    endpoint = f"{target.rstrip('/')}/api/internal/reset-credentials"
     data = json.dumps({"passwords": passwords}).encode("utf-8")
     
     req = urllib.request.Request(endpoint, data=data, method="POST")
@@ -60,6 +61,10 @@ def startup_event():
         pass
     try:
         conn.execute("ALTER TABLE instances ADD COLUMN pwd_display TEXT")
+    except Exception:
+        pass
+    try:
+        conn.execute("ALTER TABLE instances ADD COLUMN internal_url TEXT")
     except Exception:
         pass
     
@@ -165,7 +170,7 @@ def update_instance(instance_id: int, payload: InstanceUpdate):
             "desk": payload.pwd_desk,
             "display": payload.pwd_display
         }
-        send_passwords_to_instance(row["url"], passwords_pkg)
+        send_passwords_to_instance(row["url"], passwords_pkg, row["internal_url"])
         
     conn.commit()
     updated = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
@@ -195,7 +200,7 @@ def free_instance(instance_id: int):
         "desk": secrets.token_urlsafe(32),
         "display": secrets.token_urlsafe(32)
     }
-    send_passwords_to_instance(row["url"], lock_passwords)
+    send_passwords_to_instance(row["url"], lock_passwords, row["internal_url"])
 
     conn.commit()
     updated = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
@@ -224,7 +229,7 @@ def maintenance_instance(instance_id: int):
         "desk": secrets.token_urlsafe(32),
         "display": secrets.token_urlsafe(32)
     }
-    send_passwords_to_instance(row["url"], lock_passwords)
+    send_passwords_to_instance(row["url"], lock_passwords, row["internal_url"])
 
     conn.commit()
     updated = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
