@@ -73,6 +73,13 @@ def startup_event():
     if not row:
         conn.execute("INSERT INTO instances (id, port, url, status) VALUES (30, 'test', 'https://dms.cphlby.com', 'available')")
 
+    # Auto-fill internal_url for standard production instances (1-29) if empty
+    for i in range(1, 30):
+        conn.execute(
+            "UPDATE instances SET internal_url=? WHERE id=? AND (internal_url IS NULL OR internal_url = '')",
+            (f"http://dms-instance{i}:8000", i)
+        )
+
     conn.commit()
     conn.close()
 
