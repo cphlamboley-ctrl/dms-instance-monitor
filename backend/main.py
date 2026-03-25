@@ -35,17 +35,18 @@ def send_passwords_to_instance(public_url: str, passwords: dict, internal_url: s
         req.add_header("X-Internal-Token", INTERNAL_API_TOKEN.strip())
         
         try:
+            # On utilise un timeout court pour ne pas bloquer l'UI
             with urllib.request.urlopen(req, timeout=5) as response:
                 if response.status == 200:
                     print(f"Successfully updated passwords for {public_url} via {target}")
-                    return True
+                    return True, "OK"
         except Exception as e:
             last_error = str(e)
             print(f"Sync attempt failed for {public_url} via {target}: {e}")
             continue # Try next target
             
     print(f"CRITICAL: Failed to update passwords for {public_url} after trying all targets. Last error: {last_error}")
-    return False
+    return False, last_error
 
 app = FastAPI(title="DMS Instance Tracker", version="1.0.0")
 
@@ -189,6 +190,7 @@ def update_instance(instance_id: int, payload: InstanceUpdate):
     
     # ─── COMMUNICATION AVEC L'INSTANCE DMS ───
     sync_ok = True
+    sync_msg = "OK"
     if keep_fields and payload.password:
         passwords_pkg = {
             "admin": payload.password,
@@ -196,7 +198,7 @@ def update_instance(instance_id: int, payload: InstanceUpdate):
             "desk": payload.pwd_desk,
             "display": payload.pwd_display
         }
-        sync_ok = send_passwords_to_instance(row["url"], passwords_pkg, row["internal_url"])
+        sync_ok, sync_msg = send_passwords_to_instance(row["url"], passwords_pkg, row["internal_url"])
         
     conn.commit()
     row = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
@@ -204,6 +206,7 @@ def update_instance(instance_id: int, payload: InstanceUpdate):
     
     result = dict(row)
     result["sync_ok"] = sync_ok
+    result["sync_msg"] = sync_msg
     return result
 
 
@@ -229,7 +232,7 @@ def free_instance(instance_id: int):
         "desk": secrets.token_urlsafe(32),
         "display": secrets.token_urlsafe(32)
     }
-    sync_ok = send_passwords_to_instance(row["url"], lock_passwords, row["internal_url"])
+    sync_ok, sync_msg = send_passwords_to_instance(row["url"], lock_passwords, row["internal_url"])
 
     conn.commit()
     row = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
@@ -237,6 +240,7 @@ def free_instance(instance_id: int):
     
     result = dict(row)
     result["sync_ok"] = sync_ok
+    result["sync_msg"] = sync_msg
     return result
 
 
@@ -261,7 +265,7 @@ def maintenance_instance(instance_id: int):
         "desk": secrets.token_urlsafe(32),
         "display": secrets.token_urlsafe(32)
     }
-    sync_ok = send_passwords_to_instance(row["url"], lock_passwords, row["internal_url"])
+    sync_ok, sync_msg = send_passwords_to_instance(row["url"], lock_passwords, row["internal_url"])
 
     conn.commit()
     row = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
@@ -269,6 +273,7 @@ def maintenance_instance(instance_id: int):
     
     result = dict(row)
     result["sync_ok"] = sync_ok
+    result["sync_msg"] = sync_msg
     return result
 
 
@@ -332,17 +337,32 @@ def delete_instance(instance_id: int):
 
 @app.post("/api/admin/test-connection")
 async def test_instance_connection(payload: dict):
-    """Test if an instance is reachable via its internal or public URL."""
+    """Test simple GET connectivity."""
     url = payload.get("url")
-    if not url:
-        raise HTTPException(status_code=400, detail="URL is required")
-    
-    # Simple check: try to reach the API info or just the root
-    # We use a 3-second timeout to avoid hanging the UI
+    if not url: raise HTTPException(status_code=400, detail="URL required")
     try:
         req = urllib.request.Request(url, method="GET")
-        with urllib.request.urlopen(req, timeout=3) as response:
-            return {"status": "ok", "code": response.status}
+        with urllib.request.urlopen(req, timeout=3) as res:
+            return {"status": "ok", "code": res.status}
+    except Exception as e:
+        return {"status": "failed", "detail": str(e)}
+
+@app.post("/api/admin/test-sync")
+async def test_instance_sync(payload: dict):
+    """Test POST connectivity with Internal Token."""
+    url = payload.get("url")
+    if not url: raise HTTPException(status_code=400, detail="URL required")
+    try:
+        # We send a dummy/empty password set to see if we get a 200 or 403
+        endpoint = f"{url.rstrip('/')}/api/internal/reset-credentials"
+        # We send an empty dictionary, which should be accepted by the DMS App's reset_credentials
+        data = json.dumps({"passwords": {}}).encode("utf-8")
+        req = urllib.request.Request(endpoint, data=data, method="POST")
+        req.add_header("Content-Type", "application/json")
+        req.add_header("X-Internal-Token", INTERNAL_API_TOKEN.strip())
+        
+        with urllib.request.urlopen(req, timeout=3) as res:
+            return {"status": "ok", "code": res.status}
     except Exception as e:
         return {"status": "failed", "detail": str(e)}
 

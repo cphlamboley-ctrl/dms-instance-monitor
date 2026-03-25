@@ -127,7 +127,7 @@ async function toggleStatus(id, currentStatus, event) {
     const data = await res.json();
     
     if (data.sync_ok === false) {
-      alert("⚠️ Status updated in database, but FAILED to sync passwords with the DMS instance. Please check network connectivity or internal tokens.");
+      alert(`⚠️ Status updated in database, but FAILED to sync with the DMS instance.\n\nError: ${data.sync_msg}\n\nPlease check network connectivity or internal tokens.`);
     }
     
     await loadInstances();
@@ -146,8 +146,10 @@ async function testConnection(urlFieldId, btnId) {
   btn.textContent = 'Testing...';
   btn.className = 'test-btn';
 
+  const endpoint = urlFieldId === 'internal_url' ? '/api/admin/test-sync' : '/api/admin/test-connection';
+
   try {
-    const res = await fetch('/api/admin/test-connection', {
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url })
@@ -228,7 +230,7 @@ instanceForm.onsubmit = async (e) => {
 
     const data = await res.json();
     if (data.sync_ok === false) {
-      alert("⚠️ Instance updated, but FAILED to sync new passwords with the DMS instance. Your changes might not be effective on the DMS side.");
+      alert(`⚠️ Instance updated, but FAILED to sync new passwords with the DMS instance.\n\nError: ${data.sync_msg}\n\nYour changes might not be effective on the DMS side.`);
     }
     
     closeModal();
