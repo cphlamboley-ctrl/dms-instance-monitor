@@ -124,6 +124,12 @@ async function toggleStatus(id, currentStatus, event) {
       body: JSON.stringify({ status: nextStatus })
     });
     if (!res.ok) throw new Error('Failed to update status');
+    const data = await res.json();
+    
+    if (data.sync_ok === false) {
+      alert("⚠️ Status updated in database, but FAILED to sync passwords with the DMS instance. Please check network connectivity or internal tokens.");
+    }
+    
     await loadInstances();
   } catch (err) {
     alert(err.message);
@@ -218,6 +224,11 @@ instanceForm.onsubmit = async (e) => {
     if (!res.ok) {
       const errData = await res.json();
       throw new Error(errData.detail || 'Save failed');
+    }
+
+    const data = await res.json();
+    if (data.sync_ok === false) {
+      alert("⚠️ Instance updated, but FAILED to sync new passwords with the DMS instance. Your changes might not be effective on the DMS side.");
     }
     
     closeModal();

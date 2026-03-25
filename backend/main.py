@@ -12,22 +12,40 @@ from datetime import date
 
 INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", "super_secret_token_dms_local")
 
-def send_passwords_to_instance(instance_url: str, passwords: dict, internal_url: str = None):
-    """Envoie les nouveaux mots de passe à l'API interne de l'instance DMS ciblée."""
-    target = internal_url if internal_url else instance_url
-    endpoint = f"{target.rstrip('/')}/api/internal/reset-credentials"
-    data = json.dumps({"passwords": passwords}).encode("utf-8")
+def send_passwords_to_instance(public_url: str, passwords: dict, internal_url: str = None):
+    """
+    Envoie les nouveaux mots de passe à l'API interne de l'instance DMS ciblée.
+    Tente l'URL interne en priorité (si on est dans le réseau Docker), 
+    puis l'URL publique en cas d'échec.
+    """
+    targets = []
+    if internal_url:
+        targets.append(internal_url)
+    if public_url:
+        targets.append(public_url)
     
-    req = urllib.request.Request(endpoint, data=data, method="POST")
-    req.add_header("Content-Type", "application/json")
-    req.add_header("X-Internal-Token", INTERNAL_API_TOKEN)
+    last_error = "No target URL provided"
     
-    try:
-        with urllib.request.urlopen(req, timeout=5) as response:
-            return response.status == 200
-    except Exception as e:
-        print(f"Failed to update passwords for {instance_url}: {e}")
-        return False
+    for target in targets:
+        endpoint = f"{target.rstrip('/')}/api/internal/reset-credentials"
+        data = json.dumps({"passwords": passwords}).encode("utf-8")
+        
+        req = urllib.request.Request(endpoint, data=data, method="POST")
+        req.add_header("Content-Type", "application/json")
+        req.add_header("X-Internal-Token", INTERNAL_API_TOKEN.strip())
+        
+        try:
+            with urllib.request.urlopen(req, timeout=5) as response:
+                if response.status == 200:
+                    print(f"Successfully updated passwords for {public_url} via {target}")
+                    return True
+        except Exception as e:
+            last_error = str(e)
+            print(f"Sync attempt failed for {public_url} via {target}: {e}")
+            continue # Try next target
+            
+    print(f"CRITICAL: Failed to update passwords for {public_url} after trying all targets. Last error: {last_error}")
+    return False
 
 app = FastAPI(title="DMS Instance Tracker", version="1.0.0")
 
@@ -170,6 +188,7 @@ def update_instance(instance_id: int, payload: InstanceUpdate):
     )
     
     # ─── COMMUNICATION AVEC L'INSTANCE DMS ───
+    sync_ok = True
     if keep_fields and payload.password:
         passwords_pkg = {
             "admin": payload.password,
@@ -177,12 +196,15 @@ def update_instance(instance_id: int, payload: InstanceUpdate):
             "desk": payload.pwd_desk,
             "display": payload.pwd_display
         }
-        send_passwords_to_instance(row["url"], passwords_pkg, row["internal_url"])
+        sync_ok = send_passwords_to_instance(row["url"], passwords_pkg, row["internal_url"])
         
     conn.commit()
-    updated = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
+    row = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
     conn.close()
-    return dict(updated)
+    
+    result = dict(row)
+    result["sync_ok"] = sync_ok
+    return result
 
 
 @app.post("/api/instances/{instance_id}/free")
@@ -207,12 +229,15 @@ def free_instance(instance_id: int):
         "desk": secrets.token_urlsafe(32),
         "display": secrets.token_urlsafe(32)
     }
-    send_passwords_to_instance(row["url"], lock_passwords, row["internal_url"])
+    sync_ok = send_passwords_to_instance(row["url"], lock_passwords, row["internal_url"])
 
     conn.commit()
-    updated = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
+    row = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
     conn.close()
-    return dict(updated)
+    
+    result = dict(row)
+    result["sync_ok"] = sync_ok
+    return result
 
 
 @app.post("/api/instances/{instance_id}/maintenance")
@@ -236,12 +261,15 @@ def maintenance_instance(instance_id: int):
         "desk": secrets.token_urlsafe(32),
         "display": secrets.token_urlsafe(32)
     }
-    send_passwords_to_instance(row["url"], lock_passwords, row["internal_url"])
+    sync_ok = send_passwords_to_instance(row["url"], lock_passwords, row["internal_url"])
 
     conn.commit()
-    updated = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
+    row = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
     conn.close()
-    return dict(updated)
+    
+    result = dict(row)
+    result["sync_ok"] = sync_ok
+    return result
 
 
 
