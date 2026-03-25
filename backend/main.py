@@ -11,7 +11,22 @@ import secrets
 import ssl
 from datetime import date
 
-INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", "super_secret_token_dms_local")
+# On essaye de charger le token depuis le dossier DMS APP voisin s'il est là
+INTERNAL_API_TOKEN = "super_secret_token_dms_local"
+ENV_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "DMS APP", ".env")
+
+if os.path.exists(ENV_PATH):
+    print(f"DEBUG: Found .env in {ENV_PATH}")
+    with open(ENV_PATH, "r") as f:
+        for line in f:
+            if line.startswith("INTERNAL_API_TOKEN="):
+                INTERNAL_API_TOKEN = line.split("=", 1)[1].strip()
+                # On enlève les éventuels guillemets
+                INTERNAL_API_TOKEN = INTERNAL_API_TOKEN.strip('"').strip("'")
+                break
+else:
+    # Fallback sur l'env var système
+    INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", INTERNAL_API_TOKEN)
 
 def send_passwords_to_instance(public_url: str, passwords: dict, internal_url: str = None):
     """
