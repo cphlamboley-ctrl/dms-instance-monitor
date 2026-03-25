@@ -8,6 +8,7 @@ import os
 import json
 import urllib.request
 import secrets
+import ssl
 from datetime import date
 
 INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", "super_secret_token_dms_local")
@@ -26,26 +27,32 @@ def send_passwords_to_instance(public_url: str, passwords: dict, internal_url: s
     
     last_error = "No target URL provided"
     
-    for target in targets:
-        endpoint = f"{target.rstrip('/')}/api/internal/reset-credentials"
-        data = json.dumps({"passwords": passwords}).encode("utf-8")
-        
-        req = urllib.request.Request(endpoint, data=data, method="POST")
-        req.add_header("Content-Type", "application/json")
-        req.add_header("X-Internal-Token", INTERNAL_API_TOKEN.strip())
-        
-        try:
-            # On utilise un timeout court pour ne pas bloquer l'UI
-            with urllib.request.urlopen(req, timeout=5) as response:
-                if response.status == 200:
-                    print(f"Successfully updated passwords for {public_url} via {target}")
-                    return True, "OK"
-        except Exception as e:
-            last_error = str(e)
-            print(f"Sync attempt failed for {public_url} via {target}: {e}")
-            continue # Try next target
+    # Contextes SSL : standard puis unvérifié si nécessaire
+    ssl_contexts = [None, ssl._create_unverified_context()]
+    
+    for context in ssl_contexts:
+        is_insecure = context is not None
+        for target in targets:
+            endpoint = f"{target.rstrip('/')}/api/internal/reset-credentials"
+            data = json.dumps({"passwords": passwords}).encode("utf-8")
             
-    print(f"CRITICAL: Failed to update passwords for {public_url} after trying all targets. Last error: {last_error}")
+            req = urllib.request.Request(endpoint, data=data, method="POST")
+            req.add_header("Content-Type", "application/json")
+            req.add_header("X-Internal-Token", INTERNAL_API_TOKEN.strip())
+            
+            try:
+                # On utilise un timeout court pour ne pas bloquer l'UI
+                with urllib.request.urlopen(req, data=data, timeout=5, context=context) as response:
+                    if response.status == 200:
+                        mode = "INSECURE" if is_insecure else "SECURE"
+                        print(f"[{mode}] Successfully updated passwords for {public_url} via {target}")
+                        return True, "OK"
+            except Exception as e:
+                last_error = str(e)
+                print(f"Sync attempt failed for {public_url} via {target} (Insecure={is_insecure}): {e}")
+                continue # Essaye la cible suivante ou le mode suivant
+            
+    print(f"CRITICAL: Failed to update passwords after trying all targets and SSL modes. Last error: {last_error}")
     return False, last_error
 
 app = FastAPI(title="DMS Instance Tracker", version="1.0.0")
@@ -101,6 +108,12 @@ def startup_event():
 
     conn.commit()
     conn.close()
+    
+    # Masked token for debugging mismatch errors (403 Forbidden)
+    mask = f"{INTERNAL_API_TOKEN[:3]}...{INTERNAL_API_TOKEN[-3:]}" if len(INTERNAL_API_TOKEN) > 6 else "*" * len(INTERNAL_API_TOKEN)
+    print("--- DMS MONITOR STARTUP ---")
+    print(f"DEBUG: Using TOKEN: {mask}")
+    print("---------------------------")
 
 
 # ─── API Routes ───────────────────────────────────────────────────────────────
@@ -352,19 +365,24 @@ async def test_instance_sync(payload: dict):
     """Test POST connectivity with Internal Token."""
     url = payload.get("url")
     if not url: raise HTTPException(status_code=400, detail="URL required")
-    try:
-        # We send a dummy/empty password set to see if we get a 200 or 403
-        endpoint = f"{url.rstrip('/')}/api/internal/reset-credentials"
-        # We send an empty dictionary, which should be accepted by the DMS App's reset_credentials
-        data = json.dumps({"passwords": {}}).encode("utf-8")
-        req = urllib.request.Request(endpoint, data=data, method="POST")
-        req.add_header("Content-Type", "application/json")
-        req.add_header("X-Internal-Token", INTERNAL_API_TOKEN.strip())
-        
-        with urllib.request.urlopen(req, timeout=3) as res:
-            return {"status": "ok", "code": res.status}
-    except Exception as e:
-        return {"status": "failed", "detail": str(e)}
+    last_error = "Unknown"
+    
+    # On teste les deux modes SSL
+    for context in [None, ssl._create_unverified_context()]:
+        try:
+            endpoint = f"{url.rstrip('/')}/api/internal/reset-credentials"
+            data = json.dumps({"passwords": {}}).encode("utf-8")
+            req = urllib.request.Request(endpoint, data=data, method="POST")
+            req.add_header("Content-Type", "application/json")
+            req.add_header("X-Internal-Token", INTERNAL_API_TOKEN.strip())
+            
+            with urllib.request.urlopen(req, timeout=3, context=context) as res:
+                return {"status": "ok", "code": res.status, "insecure": context is not None}
+        except Exception as e:
+            last_error = str(e)
+            continue
+            
+    return {"status": "failed", "detail": last_error}
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
 
