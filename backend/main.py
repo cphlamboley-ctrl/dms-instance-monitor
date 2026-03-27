@@ -36,6 +36,13 @@ if not INTERNAL_API_TOKEN: INTERNAL_API_TOKEN = load_token_from_file(ROOT_ENV)
 if not INTERNAL_API_TOKEN: INTERNAL_API_TOKEN = load_token_from_file(DMS_APP_ENV)
 if not INTERNAL_API_TOKEN: INTERNAL_API_TOKEN = "super_secret_token_dms_local"
 
+def log_sync_event(msg: str):
+    log_path = os.path.join(os.path.dirname(__file__), "sync_debug.log")
+    from datetime import datetime
+    with open(log_path, "a") as f:
+        f.write(f"[{datetime.now().isoformat()}] {msg}\n")
+
+
 def send_passwords_to_instance(public_url: str, passwords: dict, internal_url: str = None):
     """
     Envoie les nouveaux mots de passe à l'API interne de l'instance DMS ciblée.
@@ -68,7 +75,9 @@ def send_passwords_to_instance(public_url: str, passwords: dict, internal_url: s
                 with urllib.request.urlopen(req, data=data, timeout=5, context=context) as response:
                     if response.status == 200:
                         mode = "INSECURE" if is_insecure else "SECURE"
-                        print(f"[{mode}] Successfully updated passwords for {public_url} via {target}")
+                        success_msg = f"[{mode}] Successfully updated passwords for {public_url} via {target}"
+                        print(success_msg)
+                        log_sync_event(success_msg)
                         return True, "OK"
             except Exception as e:
                 last_error = str(e)
@@ -78,9 +87,12 @@ def send_passwords_to_instance(public_url: str, passwords: dict, internal_url: s
                 elif "10061" in str(e) or "10060" in str(e):
                     msg += " -> ERREUR: Serveur injoignable (éteint ou mauvais réseau/port)."
                 print(msg)
+                log_sync_event(msg)
                 continue # Essaye la cible suivante ou le mode suivant
             
-    print(f"CRITICAL: Failed to update passwords after trying all targets and SSL modes. Last error: {last_error}")
+    crit_msg = f"CRITICAL: Failed to update passwords after trying all targets and SSL modes for {public_url}. Last error: {last_error}"
+    print(crit_msg)
+    log_sync_event(crit_msg)
     # On renvoie une erreur plus parlante pour l'UI
     final_msg = last_error
     if "403" in last_error:
