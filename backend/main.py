@@ -13,20 +13,28 @@ from datetime import date
 
 # On essaye de charger le token depuis le dossier DMS APP voisin s'il est là
 INTERNAL_API_TOKEN = "super_secret_token_dms_local"
-ENV_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "DMS APP", ".env")
 
-if os.path.exists(ENV_PATH):
-    print(f"DEBUG: Found .env in {ENV_PATH}")
-    with open(ENV_PATH, "r") as f:
-        for line in f:
-            if line.startswith("INTERNAL_API_TOKEN="):
-                INTERNAL_API_TOKEN = line.split("=", 1)[1].strip()
-                # On enlève les éventuels guillemets
-                INTERNAL_API_TOKEN = INTERNAL_API_TOKEN.strip('"').strip("'")
-                break
-else:
-    # Fallback sur l'env var système
-    INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", INTERNAL_API_TOKEN)
+# 1. On tente d'abord de charger depuis le .env du Monitor lui-même
+MONITOR_ENV = os.path.join(os.path.dirname(__file__), ".env")
+ROOT_ENV = os.path.join(os.path.dirname(__file__), "..", ".env")
+DMS_APP_ENV = os.path.join(os.path.dirname(__file__), "..", "..", "DMS APP", ".env")
+
+def load_token_from_file(path):
+    if os.path.exists(path):
+        print(f"DEBUG: Found .env in {path}")
+        with open(path, "r") as f:
+            for line in f:
+                if line.startswith("INTERNAL_API_TOKEN="):
+                    val = line.split("=", 1)[1].strip()
+                    return val.strip('"').strip("'")
+    return None
+
+# Priorité : Env var > Monitor .env > Parent .env > DMS APP .env
+INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN")
+if not INTERNAL_API_TOKEN: INTERNAL_API_TOKEN = load_token_from_file(MONITOR_ENV)
+if not INTERNAL_API_TOKEN: INTERNAL_API_TOKEN = load_token_from_file(ROOT_ENV)
+if not INTERNAL_API_TOKEN: INTERNAL_API_TOKEN = load_token_from_file(DMS_APP_ENV)
+if not INTERNAL_API_TOKEN: INTERNAL_API_TOKEN = "super_secret_token_dms_local"
 
 def send_passwords_to_instance(public_url: str, passwords: dict, internal_url: str = None):
     """
@@ -64,11 +72,20 @@ def send_passwords_to_instance(public_url: str, passwords: dict, internal_url: s
                         return True, "OK"
             except Exception as e:
                 last_error = str(e)
-                print(f"Sync attempt failed for {public_url} via {target} (Insecure={is_insecure}): {e}")
+                msg = f"Sync attempt failed for {public_url} via {target} (Insecure={is_insecure}): {e}"
+                if "403" in str(e):
+                    msg += " -> ACTION REQUOISE: Vérifiez que le 'INTERNAL_API_TOKEN' correspond sur le Monitor ET sur l'instance DMS."
+                elif "10061" in str(e) or "10060" in str(e):
+                    msg += " -> ERREUR: Serveur injoignable (éteint ou mauvais réseau/port)."
+                print(msg)
                 continue # Essaye la cible suivante ou le mode suivant
             
     print(f"CRITICAL: Failed to update passwords after trying all targets and SSL modes. Last error: {last_error}")
-    return False, last_error
+    # On renvoie une erreur plus parlante pour l'UI
+    final_msg = last_error
+    if "403" in last_error:
+        final_msg = "403 Forbidden: Problème de TOKEN (X-Internal-Token mismatch). Vérifiez le .env."
+    return False, final_msg
 
 app = FastAPI(title="DMS Instance Tracker", version="1.0.0")
 
