@@ -24,6 +24,8 @@ INSTANCES.append({
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    # Enable WAL mode to prevent 'database is locked' errors during concurrent writes
+    conn.execute("PRAGMA journal_mode=WAL")
     return conn
 
 
@@ -46,6 +48,19 @@ def init_db():
             pwd_arrival TEXT,
             pwd_desk    TEXT,
             pwd_display TEXT
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS logs (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp   DATETIME DEFAULT CURRENT_TIMESTAMP,
+            instance_id INTEGER,
+            category    TEXT NOT NULL, -- SYNC, STATUS, AUTH, ADMIN
+            level       TEXT NOT NULL, -- info, success, warning, error
+            message     TEXT NOT NULL,
+            details     TEXT,
+            FOREIGN KEY (instance_id) REFERENCES instances(id)
         )
     """)
 

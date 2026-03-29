@@ -261,6 +261,47 @@
       align-items: center;
       justify-content: center;
     }
+
+    /* ═══ LOGS SECTION ═════════════════════════════════════════════════════ */
+    .logs-section {
+      margin-top: 60px;
+      padding-top: 40px;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    .logs-container {
+      background: rgba(13, 20, 34, 0.4);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      overflow: hidden;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .log-item {
+      display: grid;
+      grid-template-columns: 160px 100px 80px 1fr;
+      padding: 12px 20px;
+      font-size: 0.82rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      align-items: center;
+    }
+
+    .log-item:last-child { border-bottom: none; }
+    .log-item:hover { background: rgba(255,255,255,0.02); }
+
+    .log-time { color: var(--text-muted); font-family: monospace; font-size: 0.75rem; }
+    .log-cat { font-weight: 700; color: var(--accent); font-size: 0.7rem; text-transform: uppercase; }
+    .log-inst { font-weight: 600; color: var(--text-secondary); text-align: center; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; width: fit-content; }
+    .log-msg { color: var(--text-primary); }
+
+    .log-item.error .log-msg { color: #ff5f5f; }
+    .log-item.success .log-msg { color: #4ade80; }
+    .log-item.warning .log-msg { color: #fbbf24; }
+    
+    .log-item.error { border-left: 3px solid #ff5f5f; }
+    .log-item.success { border-left: 3px solid #4ade80; }
+    .log-item.warning { border-left: 3px solid #fbbf24; }
   </style>
 </head>
 
@@ -276,10 +317,16 @@
       </div>
     </div>
     <div class="header-right">
+      <a href="/logs" class="nav-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+        </svg>
+        Activity Journal
+      </a>
       <a href="/" class="nav-btn">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1 -2 2H5a2 0 0 1 -2 -2z"></path>
-          <path d="M9 22V12h6v10"></path>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12l9-9 9 9M5 10v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V10"></path>
         </svg>
         Dashboard
       </a>
@@ -325,7 +372,7 @@
   </main>
 
   <footer class="app-footer" style="margin-top: auto; justify-content: center; padding: 20px;">
-    <span class="footer-copy">©2026 Sportdata Gmbh & Co KG — DMS Instance Monitor V3.0</span>
+    <span class="footer-copy">©2026 Sportdata Gmbh & Co KG — DMS Instance Monitor V4.0</span>
   </footer>
 
   <!-- MODAL -->

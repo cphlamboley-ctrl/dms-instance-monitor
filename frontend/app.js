@@ -250,7 +250,7 @@ function showEditMode() {
 }
 
 function generatePassword() {
-  // Evite les caractères ambigus (l, 1, I, O, 0)
+  // Exclude ambiguous characters (l, 1, I, O, 0)
   const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!?#@*+';
   let pwd = '';
   for (let i = 0; i < 10; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length));

@@ -1,7 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════
    DMS Instance Monitor — manager.js
    Coherent Admin UI for DMS
-═══════════════════════════════════════════════════════════════ */
+   Cleaned up - Logs moved to dedicated page
+   Language: English
+   ═══════════════════════════════════════════════════════════════ */
 
 const API_ADMIN = '/api/admin/instances';
 const API_BASE = '/api/instances';

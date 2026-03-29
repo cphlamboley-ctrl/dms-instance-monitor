@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -36,10 +36,30 @@ if not INTERNAL_API_TOKEN: INTERNAL_API_TOKEN = load_token_from_file(ROOT_ENV)
 if not INTERNAL_API_TOKEN: INTERNAL_API_TOKEN = load_token_from_file(DMS_APP_ENV)
 if not INTERNAL_API_TOKEN: INTERNAL_API_TOKEN = "super_secret_token_dms_local"
 
+def log_event(category: str, level: str, message: str, instance_id: int = None, details: str = None):
+    """Enregistre un événement dans la base de données et dans le fichier de log."""
+    try:
+        from datetime import datetime
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # 1. Log en base de données
+        conn = get_connection()
+        conn.execute(
+            "INSERT INTO logs (timestamp, instance_id, category, level, message, details) VALUES (?, ?, ?, ?, ?, ?)",
+            (now, instance_id, category, level, message, details)
+        )
+        conn.commit()
+        conn.close()
+
+        # 2. Log dans le fichier pour réversibilité
+        log_sync_event(f"[{category}][{level.upper()}] Instance {instance_id if instance_id else 'SYS'}: {message}")
+    except Exception as e:
+        print(f"FAILED TO LOG EVENT: {e}")
+
 def log_sync_event(msg: str):
     log_path = os.path.join(os.path.dirname(__file__), "sync_debug.log")
     from datetime import datetime
-    with open(log_path, "a") as f:
+    with open(log_path, "a", encoding="utf-8") as f:
         f.write(f"[{datetime.now().isoformat()}] {msg}\n")
 
 
@@ -75,29 +95,15 @@ def send_passwords_to_instance(public_url: str, passwords: dict, internal_url: s
                 with urllib.request.urlopen(req, data=data, timeout=5, context=context) as response:
                     if response.status == 200:
                         mode = "INSECURE" if is_insecure else "SECURE"
-                        success_msg = f"[{mode}] Successfully updated passwords for {public_url} via {target}"
-                        print(success_msg)
-                        log_sync_event(success_msg)
-                        return True, "OK"
+                        success_msg = f"Update successful via {target}"
+                        # On ne log pas instance_id ici car on n'en a pas, mais on le fera dans l'appelant
+                        return True, success_msg
             except Exception as e:
-                last_error = str(e)
-                msg = f"Sync attempt failed for {public_url} via {target} (Insecure={is_insecure}): {e}"
-                if "403" in str(e):
-                    msg += " -> ACTION REQUOISE: Vérifiez que le 'INTERNAL_API_TOKEN' correspond sur le Monitor ET sur l'instance DMS."
-                elif "10061" in str(e) or "10060" in str(e):
-                    msg += " -> ERREUR: Serveur injoignable (éteint ou mauvais réseau/port)."
-                print(msg)
-                log_sync_event(msg)
-                continue # Essaye la cible suivante ou le mode suivant
+                # Capture standard Python errors (might be in FR on this OS)
+                last_error = f"Connection failed ({type(e).__name__})"
+                continue 
             
-    crit_msg = f"CRITICAL: Failed to update passwords after trying all targets and SSL modes for {public_url}. Last error: {last_error}"
-    print(crit_msg)
-    log_sync_event(crit_msg)
-    # On renvoie une erreur plus parlante pour l'UI
-    final_msg = last_error
-    if "403" in last_error:
-        final_msg = "403 Forbidden: Problème de TOKEN (X-Internal-Token mismatch). Vérifiez le .env."
-    return False, final_msg
+    return False, last_error
 
 app = FastAPI(title="DMS Instance Tracker", version="1.0.0")
 
@@ -158,6 +164,8 @@ def startup_event():
     print("--- DMS MONITOR STARTUP ---")
     print(f"DEBUG: Using TOKEN: {mask}")
     print("---------------------------")
+    
+    log_event("SYSTEM", "info", "Monitor startup completed.")
 
 
 # ─── API Routes ───────────────────────────────────────────────────────────────
@@ -259,9 +267,21 @@ def update_instance(instance_id: int, payload: InstanceUpdate):
         
     conn.commit()
     row = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
+    result = dict(row)
     conn.close()
     
-    result = dict(row)
+    # Log the event without sync details in message
+    log_msg = f"Status updated to: {payload.status.upper()}"
+    if payload.status == "in_use" and payload.used_by:
+        log_msg = f"Assigned to: {payload.used_by}"
+    
+    log_event(
+        category="STATUS", 
+        level="success" if sync_ok else "error",
+        message=f"Instance {instance_id}: {log_msg}",
+        instance_id=instance_id
+    )
+
     result["sync_ok"] = sync_ok
     result["sync_msg"] = sync_msg
     return result
@@ -293,9 +313,17 @@ def free_instance(instance_id: int):
 
     conn.commit()
     row = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
-    conn.close()
-    
     result = dict(row)
+    conn.close()
+
+    # Log the event without sync details
+    log_event(
+        category="STATUS", 
+        level="success" if sync_ok else "error",
+        message=f"Instance {instance_id}: Released (Status: AVAILABLE)",
+        instance_id=instance_id
+    )
+
     result["sync_ok"] = sync_ok
     result["sync_msg"] = sync_msg
     return result
@@ -324,15 +352,73 @@ def maintenance_instance(instance_id: int):
     }
     sync_ok, sync_msg = send_passwords_to_instance(row["url"], lock_passwords, row["internal_url"])
 
+    # Log the event
     conn.commit()
     row = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
-    conn.close()
-    
     result = dict(row)
+    conn.close()
+
+    # Log the event WITHOUT sync details
+    log_event(
+        category="STATUS", 
+        level="success" if sync_ok else "error",
+        message=f"Instance {instance_id}: Set to MAINTENANCE",
+        instance_id=instance_id
+    )
+
     result["sync_ok"] = sync_ok
     result["sync_msg"] = sync_msg
     return result
 
+
+
+@app.get("/api/logs")
+def get_logs(limit: int = 50, instance_id: int = None):
+    """Récupère les derniers événements enregistrés avec les infos d'instance."""
+    conn = get_connection()
+    query = """
+        SELECT l.*, i.port, i.used_by 
+        FROM logs l
+        LEFT JOIN instances i ON l.instance_id = i.id
+    """
+    params = []
+    if instance_id:
+        query += " WHERE l.instance_id=?"
+        params.append(instance_id)
+    query += " ORDER BY l.id DESC LIMIT ?"
+    params.append(limit)
+    
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+@app.delete("/api/logs")
+def clear_all_logs():
+    """Purge tout l'historique d'activité."""
+    conn = get_connection()
+    conn.execute("DELETE FROM logs")
+    conn.commit()
+    conn.close()
+    log_event("ADMIN", "warning", "Activity Journal cleared (Manual purge).")
+    return {"ok": True}
+
+
+@app.post("/api/external/log")
+def receive_external_log(payload: dict, request: Request):
+    """Reçoit un log envoyé par une instance DMS distante."""
+    token = request.headers.get("X-Internal-Token", "").strip()
+    if not INTERNAL_API_TOKEN or token != INTERNAL_API_TOKEN:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
+    log_event(
+        category=payload.get("category", "EXTERNAL"),
+        level=payload.get("level", "info"),
+        message=payload.get("message", "External event"),
+        instance_id=payload.get("instance_id"),
+        details=payload.get("details")
+    )
+    return {"ok": True}
 
 
 # ─── ADMIN ROUTES ─────────────────────────────────────────────────────────────
@@ -348,6 +434,7 @@ def create_instance(payload: InstanceAdmin):
             (payload.port, payload.url, payload.internal_url)
         )
         new_id = cursor.lastrowid
+        log_event("ADMIN", "info", f"New instance added (Port: {payload.port})", instance_id=new_id)
         conn.commit()
         row = conn.execute("SELECT * FROM instances WHERE id=?", (new_id,)).fetchone()
         return dict(row)
@@ -371,6 +458,7 @@ def update_instance_config(instance_id: int, payload: InstanceAdmin):
         "UPDATE instances SET port=?, url=?, internal_url=? WHERE id=?",
         (payload.port, payload.url, payload.internal_url, instance_id)
     )
+    log_event("ADMIN", "info", f"Configuration updated (Port: {payload.port})", instance_id=instance_id)
     conn.commit()
     updated = conn.execute("SELECT * FROM instances WHERE id=?", (instance_id,)).fetchone()
     conn.close()
@@ -387,6 +475,7 @@ def delete_instance(instance_id: int):
         raise HTTPException(status_code=404, detail="Instance not found")
 
     conn.execute("DELETE FROM instances WHERE id=?", (instance_id,))
+    log_event("ADMIN", "warning", f"Instance deleted (ID: {instance_id}, Port: {row['port']})")
     conn.commit()
     conn.close()
     return {"status": "deleted", "id": instance_id}
@@ -441,3 +530,8 @@ def serve_index():
 @app.get("/manager")
 def serve_manager():
     return FileResponse(os.path.join(FRONTEND_DIR, "manager.html"))
+
+
+@app.get("/logs")
+def serve_logs():
+    return FileResponse(os.path.join(FRONTEND_DIR, "logs.html"))
